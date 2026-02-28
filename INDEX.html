@@ -3,8 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <title>Rifa Automática</title>
+
+<!-- Excel Reader -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- Confetti -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<!-- Excel Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.core.min.js"></script>
 
 <style>
     body { font-family: Arial; background:#f4f4f4; margin:0; padding:20px; }
@@ -12,57 +19,60 @@
     button { padding:10px 20px; font-size:16px; border:0; border-radius:6px; cursor:pointer; background:#2a78ff; color:white; margin:5px; }
     button:disabled { background:gray; cursor:not-allowed; }
     #ganadores div { background:#ffeaa7; padding:10px; border-radius:6px; margin:10px 0; }
-    #configuracion { display:block; }
-    #rifaFinal { display:none; }
     .titulo { font-size:22px; font-weight:bold; margin-bottom:10px; }
 
-    /* Ruleta animada */
-    #ruletaBox {
-        display:none;
-        width: 100%;
-        text-align:center;
-        margin-top:20px;
-    }
+    #configuracion { display:block; }
+    #rifaFinal { display:none; }
+
+    #ruletaBox { display:none; text-align:center; margin-top:20px; }
     #ruleta {
         font-size:40px;
         font-weight:bold;
         padding:20px;
-        background:#ffffff;
+        min-width:300px;
+        background:white;
         border-radius:10px;
         box-shadow:0 0 20px rgba(0,0,0,0.3);
-        display:inline-block;
-        min-width:300px;
-        transform-origin:center;
         transition:transform 3s ease-out;
+        display:inline-block;
+    }
+
+    /* Contador */
+    #contador {
+        display:none;
+        font-size:60px;
+        font-weight:bold;
+        text-align:center;
+        margin-top:20px;
     }
 </style>
 </head>
 <body>
 
-<!-- ========================== PANTALLA 1: CONFIGURACIÓN ========================== -->
+<!-- ========================== CONFIGURACIÓN ========================== -->
 <div id="configuracion" class="card">
     <div class="titulo">⚙️ Configuración de la Rifa</div>
 
     <label>Cantidad de Premios:</label><br>
-    <input type="number" id="cantidadPremios" min="1"><br><br>
+    <input type="number" id="cantidadPremios"><br><br>
 
-    <label>Nombre / Descripción de cada Premio (uno por línea):</label><br>
+    <label>Descripción de los premios (uno por línea):</label><br>
     <textarea id="listaPremios" rows="5" style="width:100%;"></textarea><br><br>
 
-    <label>Sube el archivo Excel con boletos (Número | Nombre):</label><br>
+    <label>Sube el archivo Excel (Número | Nombre):</label><br>
     <input type="file" id="inputExcel" accept=".xlsx, .xls"><br><br>
 
     <button onclick="generarRifaFinal()">Ir a la Rifa Final</button>
 </div>
 
-
-<!-- ========================== PANTALLA 2: RIFA FINAL ========================== -->
+<!-- ========================== RIFA FINAL ========================== -->
 <div id="rifaFinal" class="card">
     <div class="titulo">🎉 Rifa Final</div>
 
     <div id="botonesPremios"></div>
 
-    <!-- Ruleta -->
+    <div id="contador"></div>
+
     <div id="ruletaBox">
         <div id="ruleta">🎡</div>
     </div>
@@ -70,14 +80,20 @@
     <h3>👑 Ganadores:</h3>
     <div id="ganadores"></div>
 
+    <button onclick="exportarExcel()">📥 Exportar Ganadores a Excel</button>
     <button style="background:red;" onclick="resetRifa()">RESET – Volver a Empezar</button>
 </div>
 
+<!-- ========================== SONIDO DE RULETA ========================== -->
+<audio id="sonidoRuleta">
+    <source src="https://www.soundjay.com/mechanical/sounds/slot-machine-1.mp3" type="audio/mpeg">
+</audio>
 
 <script>
 let boletos = [];
 let ganadores = new Set();
 let premios = [];
+let listaGanadores = [];
 
 // ======================= LEER EXCEL =======================
 document.getElementById("inputExcel").addEventListener("change", (e) => {
@@ -112,7 +128,7 @@ function generarRifaFinal() {
         return;
     }
     if (boletos.length === 0) {
-        alert("Debes subir el archivo Excel antes.");
+        alert("Debes subir el archivo Excel.");
         return;
     }
 
@@ -131,17 +147,14 @@ function generarBotonesPremios() {
     premios.forEach((premio, index) => {
         let btn = document.createElement("button");
         btn.textContent = `Sortear Premio ${index+1}: ${premio}`;
-        btn.onclick = () => iniciarRuleta(index+1, premio, btn);
+        btn.onclick = () => iniciarSorteo(index+1, premio, btn);
         cont.appendChild(btn);
     });
 }
 
 
-// ======================= ANIMACIÓN RULETA =======================
-function iniciarRuleta(numPremio, premio, btn) {
-    let ruletaBox = document.getElementById("ruletaBox");
-    let ruleta = document.getElementById("ruleta");
-
+// ======================= CONTADOR + RULETA + SONIDO =======================
+function iniciarSorteo(numPremio, premio, btn) {
     let disponibles = boletos.filter(b => !ganadores.has(b.numero));
     if (disponibles.length === 0) {
         alert("Ya no hay boletos disponibles.");
@@ -150,19 +163,43 @@ function iniciarRuleta(numPremio, premio, btn) {
 
     let ganador = disponibles[Math.floor(Math.random() * disponibles.length)];
 
-    // Mostrar ruleta
+    // Mostrar contador
+    let contador = document.getElementById("contador");
+    contador.style.display = "block";
+    contador.innerHTML = "3";
+
+    let count = 3;
+    let intervalo = setInterval(() => {
+        count--;
+        contador.innerHTML = count;
+        if (count === 0) {
+            clearInterval(intervalo);
+            contador.style.display = "none";
+            ejecutarRuleta(ganador, numPremio, premio, btn);
+        }
+    }, 1000);
+}
+
+function ejecutarRuleta(ganador, numPremio, premio, btn) {
+    let ruletaBox = document.getElementById("ruletaBox");
+    let ruleta = document.getElementById("ruleta");
+
     ruletaBox.style.display = "block";
     ruleta.innerHTML = "🎡";
     ruleta.style.transform = "rotate(0deg)";
 
-    // Girar ruleta con animación
-    let giros = 720 + Math.floor(Math.random() * 360);
-    setTimeout(() => {
-        ruleta.style.transform = `rotate(${giros}deg)`;
-    }, 50);
+    // Reproducir sonido
+    let sonido = document.getElementById("sonidoRuleta");
+    sonido.currentTime = 0;
+    sonido.play();
 
-    // Mostrar resultado final después del giro
+    // Girar ruleta
+    let giros = 720 + Math.floor(Math.random() * 360);
+    setTimeout(() => { ruleta.style.transform = `rotate(${giros}deg)`; }, 50);
+
+    // Mostrar ganador
     setTimeout(() => {
+        sonido.pause();
         ruleta.innerHTML = `🎫 ${ganador.numero}<br>👤 ${ganador.nombre}`;
         ganadores.add(ganador.numero);
         btn.disabled = true;
@@ -177,7 +214,6 @@ function iniciarRuleta(numPremio, premio, btn) {
 // ======================= CONFETI =======================
 function lanzarConfeti() {
     const end = Date.now() + 1000;
-
     (function frame() {
         confetti({ particleCount: 5, spread: 70 });
         if (Date.now() < end) requestAnimationFrame(frame);
@@ -187,13 +223,36 @@ function lanzarConfeti() {
 
 // ======================= MOSTRAR GANADOR =======================
 function mostrarGanador(numPremio, premio, ganador) {
+    let cont = document.getElementById("ganadores");
+
     let div = document.createElement("div");
     div.innerHTML = `
         🎁 <b>Premio ${numPremio}: ${premio}</b><br>
         🎫 Boleto: <b>${ganador.numero}</b><br>
         👤 Nombre: <b>${ganador.nombre}</b>
     `;
-    document.getElementById("ganadores").appendChild(div);
+    cont.appendChild(div);
+
+    listaGanadores.push({
+        Premio: premio,
+        Numero: ganador.numero,
+        Nombre: ganador.nombre
+    });
+}
+
+
+// ======================= EXPORTAR A EXCEL =======================
+function exportarExcel() {
+    if (listaGanadores.length === 0) {
+        alert("No hay ganadores todavía.");
+        return;
+    }
+
+    let ws = XLSX.utils.json_to_sheet(listaGanadores);
+    let wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Ganadores");
+
+    XLSX.writeFile(wb, "Ganadores_Rifa.xlsx");
 }
 
 
