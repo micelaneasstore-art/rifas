@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Rifa Automática</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+    body { font-family: Arial; background:#f4f4f4; margin:0; padding:20px; }
+    .card { background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.2); margin-bottom:20px; }
+    button { padding:10px 20px; font-size:16px; border:0; border-radius:6px; cursor:pointer; background:#2a78ff; color:white; margin:5px; }
+    button:disabled { background:gray; cursor:not-allowed; }
+    #ganadores div { background:#ffeaa7; padding:10px; border-radius:6px; margin:10px 0; }
+    #configuracion { display:block; }
+    #rifaFinal { display:none; }
+    .titulo { font-size:22px; font-weight:bold; margin-bottom:10px; }
+
+    /* Ruleta animada */
+    #ruletaBox {
+        display:none;
+        width: 100%;
+        text-align:center;
+        margin-top:20px;
+    }
+    #ruleta {
+        font-size:40px;
+        font-weight:bold;
+        padding:20px;
+        background:#ffffff;
+        border-radius:10px;
+        box-shadow:0 0 20px rgba(0,0,0,0.3);
+        display:inline-block;
+        min-width:300px;
+        transform-origin:center;
+        transition:transform 3s ease-out;
+    }
+</style>
+</head>
+<body>
+
+<!-- ========================== PANTALLA 1: CONFIGURACIÓN ========================== -->
+<div id="configuracion" class="card">
+    <div class="titulo">⚙️ Configuración de la Rifa</div>
+
+    <label>Cantidad de Premios:</label><br>
+    <input type="number" id="cantidadPremios" min="1"><br><br>
+
+    <label>Nombre / Descripción de cada Premio (uno por línea):</label><br>
+    <textarea id="listaPremios" rows="5" style="width:100%;"></textarea><br><br>
+
+    <label>Sube el archivo Excel con boletos (Número | Nombre):</label><br>
+    <input type="file" id="inputExcel" accept=".xlsx, .xls"><br><br>
+
+    <button onclick="generarRifaFinal()">Ir a la Rifa Final</button>
+</div>
+
+
+<!-- ========================== PANTALLA 2: RIFA FINAL ========================== -->
+<div id="rifaFinal" class="card">
+    <div class="titulo">🎉 Rifa Final</div>
+
+    <div id="botonesPremios"></div>
+
+    <!-- Ruleta -->
+    <div id="ruletaBox">
+        <div id="ruleta">🎡</div>
+    </div>
+
+    <h3>👑 Ganadores:</h3>
+    <div id="ganadores"></div>
+
+    <button style="background:red;" onclick="resetRifa()">RESET – Volver a Empezar</button>
+</div>
+
+
+<script>
+let boletos = [];
+let ganadores = new Set();
+let premios = [];
+
+// ======================= LEER EXCEL =======================
+document.getElementById("inputExcel").addEventListener("change", (e) => {
+    let file = e.target.files[0];
+    let reader = new FileReader();
+
+    reader.onload = (e) => {
+        let data = new Uint8Array(e.target.result);
+        let wb = XLSX.read(data, { type: "array" });
+        let sheet = wb.Sheets[wb.SheetNames[0]];
+        let rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        boletos = [];
+        rows.forEach(r => {
+            if (r[0] && r[1]) boletos.push({ numero: r[0], nombre: r[1] });
+        });
+
+        alert("Excel cargado: " + boletos.length + " boletos.");
+    };
+
+    reader.readAsArrayBuffer(file);
+});
+
+
+// ======================= GENERAR RIFA FINAL =======================
+function generarRifaFinal() {
+    let cantidad = parseInt(document.getElementById("cantidadPremios").value);
+    premios = document.getElementById("listaPremios").value.trim().split("\n");
+
+    if (!cantidad || premios.length !== cantidad) {
+        alert("La cantidad de premios NO coincide con la lista.");
+        return;
+    }
+    if (boletos.length === 0) {
+        alert("Debes subir el archivo Excel antes.");
+        return;
+    }
+
+    document.getElementById("configuracion").style.display = "none";
+    document.getElementById("rifaFinal").style.display = "block";
+
+    generarBotonesPremios();
+}
+
+
+// ======================= GENERAR BOTONES =======================
+function generarBotonesPremios() {
+    let cont = document.getElementById("botonesPremios");
+    cont.innerHTML = "";
+
+    premios.forEach((premio, index) => {
+        let btn = document.createElement("button");
+        btn.textContent = `Sortear Premio ${index+1}: ${premio}`;
+        btn.onclick = () => iniciarRuleta(index+1, premio, btn);
+        cont.appendChild(btn);
+    });
+}
+
+
+// ======================= ANIMACIÓN RULETA =======================
+function iniciarRuleta(numPremio, premio, btn) {
+    let ruletaBox = document.getElementById("ruletaBox");
+    let ruleta = document.getElementById("ruleta");
+
+    let disponibles = boletos.filter(b => !ganadores.has(b.numero));
+    if (disponibles.length === 0) {
+        alert("Ya no hay boletos disponibles.");
+        return;
+    }
+
+    let ganador = disponibles[Math.floor(Math.random() * disponibles.length)];
+
+    // Mostrar ruleta
+    ruletaBox.style.display = "block";
+    ruleta.innerHTML = "🎡";
+    ruleta.style.transform = "rotate(0deg)";
+
+    // Girar ruleta con animación
+    let giros = 720 + Math.floor(Math.random() * 360);
+    setTimeout(() => {
+        ruleta.style.transform = `rotate(${giros}deg)`;
+    }, 50);
+
+    // Mostrar resultado final después del giro
+    setTimeout(() => {
+        ruleta.innerHTML = `🎫 ${ganador.numero}<br>👤 ${ganador.nombre}`;
+        ganadores.add(ganador.numero);
+        btn.disabled = true;
+
+        mostrarGanador(numPremio, premio, ganador);
+        lanzarConfeti();
+
+    }, 3000);
+}
+
+
+// ======================= CONFETI =======================
+function lanzarConfeti() {
+    const end = Date.now() + 1000;
+
+    (function frame() {
+        confetti({ particleCount: 5, spread: 70 });
+        if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+}
+
+
+// ======================= MOSTRAR GANADOR =======================
+function mostrarGanador(numPremio, premio, ganador) {
+    let div = document.createElement("div");
+    div.innerHTML = `
+        🎁 <b>Premio ${numPremio}: ${premio}</b><br>
+        🎫 Boleto: <b>${ganador.numero}</b><br>
+        👤 Nombre: <b>${ganador.nombre}</b>
+    `;
+    document.getElementById("ganadores").appendChild(div);
+}
+
+
+// ======================= RESET =======================
+function resetRifa() {
+    location.reload();
+}
+</script>
+
+</body>
+</html>
