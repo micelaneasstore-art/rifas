@@ -3,138 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <title>Rifa Automática - APP</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
 <!-- Excel Reader -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 <!-- Confetti -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
 <!-- Excel Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.core.min.js"></script>
 
 <style>
-    body { 
-        font-family: 'Montserrat', Arial, sans-serif; 
-        background:#ffe9bf;
-        margin:0;
-        overflow-x:hidden;
-        color:#333;
-    }
-
+    body { font-family: Arial; background:#ffe9bf; margin:0; overflow-x:hidden; }
     #topbar {
-        background:#d62828;
-        color:white;
-        text-align:center;
-        padding:18px;
-        font-size:26px;
-        font-weight:bold;
-        position:fixed;
-        top:0;
-        width:100%;
-        z-index:10;
+        background:#d62828; color:white; text-align:center;
+        padding:18px; font-size:26px; font-weight:bold;
+        position:fixed; top:0; width:100%; z-index:10;
         box-shadow:0 2px 6px rgba(0,0,0,0.3);
     }
-
-    .page {
-        padding:100px 20px 20px;
-        box-sizing:border-box;
-    }
+    .page { padding:100px 20px 20px; box-sizing:border-box; }
 
     .card {
-        background:white;
-        padding:25px;
-        border-radius:15px;
-        box-shadow:0 4px 10px rgba(0,0,0,0.2);
-        margin-bottom:25px;
+        background:white; padding:25px; border-radius:15px;
+        box-shadow:0 4px 10px rgba(0,0,0,0.2); margin-bottom:25px;
     }
 
     .btn {
-        width:100%;
-        padding:18px;
-        font-size:22px;
-        border:0;
-        border-radius:12px;
-        font-weight:bold;
-        cursor:pointer;
+        width:100%; padding:18px; font-size:22px; border:0;
+        border-radius:12px; font-weight:bold; cursor:pointer;
         margin-top:12px;
-        transition:0.2s;
     }
-
     .btn-primary { background:#0077ff; color:white; }
-    .btn-primary:hover { background:#0059c9; }
-
     .btn-danger { background:#d62828; color:white; }
-    .btn-danger:hover { background:#b51f1f; }
 
     input, textarea {
-        width:100%;
-        padding:15px;
-        font-size:18px;
-        border-radius:12px;
-        border:2px solid #ccc;
-        margin-top:8px;
-        box-sizing:border-box;
+        width:100%; padding:15px; font-size:18px;
+        border-radius:12px; border:2px solid #ccc;
     }
 
     #ganadores div {
-        background:#fff3a3;
-        padding:15px;
-        font-size:22px;
-        border-radius:12px;
-        margin-top:12px;
-        border-left:6px solid #d62828;
+        background:#fff3a3; padding:15px; font-size:22px;
+        border-radius:12px; margin-top:12px; border-left:6px solid #d62828;
     }
 
-    #ruletaBox {
-        display:none;
-        text-align:center;
-        margin-top:20px;
-        width:100%;
-    }
+    #ruletaBox { display:none; text-align:center; margin-top:20px; width:100%; }
 
-    /* Caja fija (no gira) */
+    /* FIX: Caja NO gira */
     #ruleta {
-        width:90%;
-        max-width:350px;
-        background:white;
-        border-radius:15px;
-        padding:25px;
-        margin:auto;
+        width:90%; max-width:350px; background:white;
+        border-radius:15px; padding:25px; margin:auto;
         box-shadow:0 0 25px rgba(0,0,0,0.3);
         text-align:center;
     }
 
-    /* Contenido interno: esto sí gira */
+    /* FIX: SOLO GIRA EL ICONO */
     #ruleta-inner {
-        font-size:48px;
-        font-weight:bold;
-        transition:transform 3s ease-out;
+        font-size:48px; font-weight:bold;
+        transition: transform 3s ease-out;
         display:block;
     }
 
     #contador {
-        display:none;
-        font-size:80px;
-        font-weight:bold;
-        text-align:center;
-        margin-top:25px;
-        color:#d62828;
-    }
-
-    @media (max-width:480px) {
-        #ruleta-inner { font-size:40px; }
-        #contador { font-size:60px; }
-        .btn { font-size:20px; padding:16px; }
-        input, textarea { font-size:16px; }
+        display:none; font-size:80px; font-weight:bold;
+        text-align:center; margin-top:25px; color:#d62828;
     }
 </style>
 </head>
 <body>
 
-<div id="topbar">🎉 RIFA AUTOMÁTICA – MODO APP</div>
+<div id="topbar">🎉 RIFA AUTOMÁTICA</div>
 
 <!-- CONFIGURACIÓN -->
 <div id="configuracion" class="page">
@@ -144,7 +80,7 @@
         <label>Cantidad de Premios:</label>
         <input type="number" id="cantidadPremios">
 
-        <label style="margin-top:15px;">Descripción de los premios (uno por línea):</label>
+        <label style="margin-top:15px;">Descripción de premios (uno por línea):</label>
         <textarea id="listaPremios" rows="5"></textarea>
 
         <label style="margin-top:15px;">Archivo Excel (Número | Nombre):</label>
@@ -187,7 +123,8 @@ let ganadores = new Set();
 let premios = [];
 let listaGanadores = [];
 
-document.getElementById("inputExcel").addEventListener("change", (e)=>{
+/* =================== CARGAR EXCEL =================== */
+document.getElementById("inputExcel").addEventListener("change",(e)=>{
     let file=e.target.files[0];
     let reader=new FileReader();
     reader.onload=(e)=>{
@@ -202,6 +139,7 @@ document.getElementById("inputExcel").addEventListener("change", (e)=>{
     reader.readAsArrayBuffer(file);
 });
 
+/* =================== MOSTRAR RIFA FINAL =================== */
 function generarRifaFinal(){
     let cantidad=parseInt(document.getElementById("cantidadPremios").value);
     premios=document.getElementById("listaPremios").value.trim().split("\n");
@@ -221,6 +159,7 @@ function generarRifaFinal(){
     generarBotonesPremios();
 }
 
+/* =================== BOTONES DE PREMIOS =================== */
 function generarBotonesPremios(){
     let cont=document.getElementById("botonesPremios");
     cont.innerHTML="";
@@ -233,6 +172,7 @@ function generarBotonesPremios(){
     });
 }
 
+/* =================== CONTADOR 3,2,1 =================== */
 function iniciarSorteo(numPremio,premio,btn){
     let disponibles=boletos.filter(b=>!ganadores.has(b.numero));
     if(disponibles.length===0){ alert("Sin boletos disponibles."); return; }
@@ -245,8 +185,7 @@ function iniciarSorteo(numPremio,premio,btn){
     let c=3;
 
     let t=setInterval(()=>{
-        c--;
-        contador.innerHTML=c;
+        c--; contador.innerHTML=c;
         if(c===0){
             clearInterval(t);
             contador.style.display="none";
@@ -255,11 +194,13 @@ function iniciarSorteo(numPremio,premio,btn){
     },1000);
 }
 
+/* =================== RULETA QUE GIRA (ICONO SOLO) =================== */
 function girarRuleta(ganador,numPremio,premio,btn){
     let inner=document.getElementById("ruleta-inner");
     let sonido=document.getElementById("sonidoRuleta");
 
     document.getElementById("ruletaBox").style.display="block";
+
     inner.innerHTML="🎡";
     inner.style.transform="rotate(0deg)";
 
@@ -268,13 +209,17 @@ function girarRuleta(ganador,numPremio,premio,btn){
 
     let giros=720+Math.floor(Math.random()*360);
 
-    setTimeout(()=>{ 
-        inner.style.transform=`rotate(${giros}deg)`; 
+    setTimeout(()=>{
+        inner.style.transform=`rotate(${giros}deg)`;
     },50);
 
     setTimeout(()=>{
         sonido.pause();
+
+        /* DETENER rotación */
         inner.style.transform="rotate(0deg)";
+
+        /* MOSTRAR GANADOR */
         inner.innerHTML=`🎫 ${ganador.numero}<br>👤 ${ganador.nombre}`;
 
         ganadores.add(ganador.numero);
@@ -285,26 +230,27 @@ function girarRuleta(ganador,numPremio,premio,btn){
     },3000);
 }
 
+/* =================== CONFETI =================== */
 function lanzarConfeti(){
     const end=Date.now()+1200;
     (function frame(){
-        confetti({ particleCount:6, spread:70 });
+        confetti({particleCount:6, spread:70});
         if(Date.now()<end) requestAnimationFrame(frame);
     })();
 }
 
+/* =================== GUARDADO DE GANADOR =================== */
 function mostrarGanador(numPremio,premio,ganador){
     let d=document.createElement("div");
-    d.innerHTML=`<b>Premio ${numPremio}: ${premio}</b><br>🎫 Boleto: <b>${ganador.numero}</b><br>👤 ${ganador.nombre}`;
+    d.innerHTML=`<b>Premio ${numPremio}: ${premio}</b><br>
+                 🎫 Boleto: <b>${ganador.numero}</b><br>
+                 👤 ${ganador.nombre}`;
     document.getElementById("ganadores").appendChild(d);
 
-    listaGanadores.push({
-        Premio: premio,
-        Numero: ganador.numero,
-        Nombre: ganador.nombre
-    });
+    listaGanadores.push({Premio:premio, Numero:ganador.numero, Nombre:ganador.nombre});
 }
 
+/* =================== EXPORTAR =================== */
 function exportarExcel(){
     if(listaGanadores.length===0) return alert("No hay ganadores.");
     let ws=XLSX.utils.json_to_sheet(listaGanadores);
@@ -313,6 +259,7 @@ function exportarExcel(){
     XLSX.writeFile(wb,"Ganadores_Rifa.xlsx");
 }
 
+/* =================== RESET =================== */
 function resetRifa(){ location.reload(); }
 </script>
 
