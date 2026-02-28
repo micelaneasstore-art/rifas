@@ -101,18 +101,23 @@
         margin-top:20px;
     }
 
-    #ruleta {
-        font-size:48px;
-        font-weight:bold;
-        padding:25px;
-        width:90%;
-        max-width:350px;
-        margin:auto;
-        background:white;
-        border-radius:15px;
-        box-shadow:0 0 25px rgba(0,0,0,0.3);
-        transition:transform 3s ease-out;
-    }
+#ruleta {
+    width:90%;
+    max-width:350px;
+    margin:auto;
+    background:white;
+    border-radius:15px;
+    padding:25px;
+    box-shadow:0 0 25px rgba(0,0,0,0.3);
+    text-align:center;
+}
+
+#ruleta-inner {
+    font-size:48px;
+    font-weight:bold;
+    transition:transform 5s ease-out;
+    display:block;
+}
 
     /* Contador */
     #contador {
@@ -166,7 +171,9 @@
         <div id="contador"></div>
 
         <div id="ruletaBox">
-            <div id="ruleta">🎡</div>
+           <div id="ruleta">
+              <div id="ruleta-inner">🎡</div>
+           </div>
         </div>
 
         <h3>👑 Ganadores:</h3>
@@ -320,4 +327,5 @@ function resetRifa(){ location.reload(); }
 
 </body>
 </html>
+
 
