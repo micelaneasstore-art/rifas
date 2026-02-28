@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Rifa Automática - APP</title>
 
-<!-- Móvil Responsive -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
 <!-- Excel Reader -->
@@ -25,7 +24,6 @@
         color:#333;
     }
 
-    /* Encabezado estilo app */
     #topbar {
         background:#d62828;
         color:white;
@@ -45,7 +43,6 @@
         box-sizing:border-box;
     }
 
-    /* Tarjetas */
     .card {
         background:white;
         padding:25px;
@@ -54,7 +51,6 @@
         margin-bottom:25px;
     }
 
-    /* Botones estilo app */
     .btn {
         width:100%;
         padding:18px;
@@ -73,7 +69,6 @@
     .btn-danger { background:#d62828; color:white; }
     .btn-danger:hover { background:#b51f1f; }
 
-    /* Inputs */
     input, textarea {
         width:100%;
         padding:15px;
@@ -84,7 +79,6 @@
         box-sizing:border-box;
     }
 
-    /* Ganadores */
     #ganadores div {
         background:#fff3a3;
         padding:15px;
@@ -94,32 +88,33 @@
         border-left:6px solid #d62828;
     }
 
-    /* Ruleta */
     #ruletaBox {
         display:none;
         text-align:center;
         margin-top:20px;
+        width:100%;
     }
 
-#ruleta {
-    width:90%;
-    max-width:350px;
-    margin:auto;
-    background:white;
-    border-radius:15px;
-    padding:25px;
-    box-shadow:0 0 25px rgba(0,0,0,0.3);
-    text-align:center;
-}
+    /* Caja fija (no gira) */
+    #ruleta {
+        width:90%;
+        max-width:350px;
+        background:white;
+        border-radius:15px;
+        padding:25px;
+        margin:auto;
+        box-shadow:0 0 25px rgba(0,0,0,0.3);
+        text-align:center;
+    }
 
-#ruleta-inner {
-    font-size:48px;
-    font-weight:bold;
-    transition:transform 5s ease-out;
-    display:block;
-}
+    /* Contenido interno: esto sí gira */
+    #ruleta-inner {
+        font-size:48px;
+        font-weight:bold;
+        transition:transform 3s ease-out;
+        display:block;
+    }
 
-    /* Contador */
     #contador {
         display:none;
         font-size:80px;
@@ -130,7 +125,7 @@
     }
 
     @media (max-width:480px) {
-        #ruleta { font-size:40px; padding:20px; }
+        #ruleta-inner { font-size:40px; }
         #contador { font-size:60px; }
         .btn { font-size:20px; padding:16px; }
         input, textarea { font-size:16px; }
@@ -139,9 +134,7 @@
 </head>
 <body>
 
-<div id="topbar">
-    🎉 RIFA AUTOMÁTICA
-</div>
+<div id="topbar">🎉 RIFA AUTOMÁTICA – MODO APP</div>
 
 <!-- CONFIGURACIÓN -->
 <div id="configuracion" class="page">
@@ -171,9 +164,9 @@
         <div id="contador"></div>
 
         <div id="ruletaBox">
-           <div id="ruleta">
+            <div id="ruleta">
                 <div id="ruleta-inner">🎡</div>
-           </div>
+            </div>
         </div>
 
         <h3>👑 Ganadores:</h3>
@@ -184,42 +177,40 @@
     </div>
 </div>
 
-<!-- Sonido -->
 <audio id="sonidoRuleta">
     <source src="https://www.soundjay.com/mechanical/sounds/slot-machine-1.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-/* MISMO CÓDIGO LÓGICO, SIN CAMBIOS */
 let boletos = [];
 let ganadores = new Set();
 let premios = [];
 let listaGanadores = [];
 
-document.getElementById("inputExcel").addEventListener("change", (e) => {
-    let file = e.target.files[0];
-    let reader = new FileReader();
-    reader.onload = (e) => {
-        let data = new Uint8Array(e.target.result);
-        let wb = XLSX.read(data, { type: "array" });
-        let sheet = wb.Sheets[wb.SheetNames[0]];
-        let rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        boletos = [];
-        rows.forEach(r => { if (r[0] && r[1]) boletos.push({ numero:r[0], nombre:r[1] }); });
-        alert("Excel cargado con " + boletos.length + " boletos.");
+document.getElementById("inputExcel").addEventListener("change", (e)=>{
+    let file=e.target.files[0];
+    let reader=new FileReader();
+    reader.onload=(e)=>{
+        let data=new Uint8Array(e.target.result);
+        let wb=XLSX.read(data,{type:"array"});
+        let sheet=wb.Sheets[wb.SheetNames[0]];
+        let rows=XLSX.utils.sheet_to_json(sheet,{header:1});
+        boletos=[];
+        rows.forEach(r=>{ if(r[0]&&r[1]) boletos.push({numero:r[0],nombre:r[1]}); });
+        alert("Excel cargado con "+boletos.length+" boletos.");
     };
     reader.readAsArrayBuffer(file);
 });
 
 function generarRifaFinal(){
-    let cantidad = parseInt(document.getElementById("cantidadPremios").value);
-    premios = document.getElementById("listaPremios").value.trim().split("\n");
+    let cantidad=parseInt(document.getElementById("cantidadPremios").value);
+    premios=document.getElementById("listaPremios").value.trim().split("\n");
 
-    if(!cantidad || premios.length !== cantidad){
+    if(!cantidad || premios.length!==cantidad){
         alert("La cantidad NO coincide con la lista.");
         return;
     }
-    if(boletos.length === 0){
+    if(boletos.length===0){
         alert("Sube un Excel primero.");
         return;
     }
@@ -231,22 +222,22 @@ function generarRifaFinal(){
 }
 
 function generarBotonesPremios(){
-    let cont = document.getElementById("botonesPremios");
+    let cont=document.getElementById("botonesPremios");
     cont.innerHTML="";
-    premios.forEach((premio, i)=>{
-        let b = document.createElement("button");
+    premios.forEach((premio,i)=>{
+        let b=document.createElement("button");
         b.className="btn btn-primary";
         b.textContent=`🎁 Sortear Premio ${i+1}: ${premio}`;
-        b.onclick=()=> iniciarSorteo(i+1,premio,b);
+        b.onclick=()=>iniciarSorteo(i+1,premio,b);
         cont.appendChild(b);
     });
 }
 
 function iniciarSorteo(numPremio,premio,btn){
-    let disponibles = boletos.filter(b=>!ganadores.has(b.numero));
+    let disponibles=boletos.filter(b=>!ganadores.has(b.numero));
     if(disponibles.length===0){ alert("Sin boletos disponibles."); return; }
 
-    let ganador = disponibles[Math.floor(Math.random()*disponibles.length)];
+    let ganador=disponibles[Math.floor(Math.random()*disponibles.length)];
 
     let contador=document.getElementById("contador");
     contador.style.display="block";
@@ -265,23 +256,27 @@ function iniciarSorteo(numPremio,premio,btn){
 }
 
 function girarRuleta(ganador,numPremio,premio,btn){
-    let ruleta=document.getElementById("ruleta");
+    let inner=document.getElementById("ruleta-inner");
     let sonido=document.getElementById("sonidoRuleta");
 
     document.getElementById("ruletaBox").style.display="block";
-    ruleta.innerHTML="🎡";
-    ruleta.style.transform="rotate(0deg)";
+    inner.innerHTML="🎡";
+    inner.style.transform="rotate(0deg)";
 
     sonido.currentTime=0;
     sonido.play();
 
-    let giros = 720 + Math.floor(Math.random()*360);
+    let giros=720+Math.floor(Math.random()*360);
 
-    setTimeout(()=>{ document.getElementById("ruleta-inner").style.transform = `rotate(${giros}deg)`; },50);
+    setTimeout(()=>{ 
+        inner.style.transform=`rotate(${giros}deg)`; 
+    },50);
 
     setTimeout(()=>{
         sonido.pause();
-        document.getElementById("ruleta-inner").innerHTML = `🎫 ${ganador.numero}<br>👤 ${ganador.nombre}`;
+        inner.style.transform="rotate(0deg)";
+        inner.innerHTML=`🎫 ${ganador.numero}<br>👤 ${ganador.nombre}`;
+
         ganadores.add(ganador.numero);
         btn.disabled=true;
 
@@ -291,20 +286,16 @@ function girarRuleta(ganador,numPremio,premio,btn){
 }
 
 function lanzarConfeti(){
-    const end = Date.now() + 1200;
+    const end=Date.now()+1200;
     (function frame(){
         confetti({ particleCount:6, spread:70 });
-        if(Date.now() < end) requestAnimationFrame(frame);
+        if(Date.now()<end) requestAnimationFrame(frame);
     })();
 }
 
 function mostrarGanador(numPremio,premio,ganador){
     let d=document.createElement("div");
-    d.innerHTML=`
-        <b>Premio ${numPremio}: ${premio}</b><br>
-        🎫 Boleto: <b>${ganador.numero}</b><br>
-        👤 ${ganador.nombre}
-    `;
+    d.innerHTML=`<b>Premio ${numPremio}: ${premio}</b><br>🎫 Boleto: <b>${ganador.numero}</b><br>👤 ${ganador.nombre}`;
     document.getElementById("ganadores").appendChild(d);
 
     listaGanadores.push({
@@ -327,10 +318,3 @@ function resetRifa(){ location.reload(); }
 
 </body>
 </html>
-
-
-
-
-
-
-
