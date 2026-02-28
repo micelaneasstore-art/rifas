@@ -171,9 +171,9 @@
         <div id="contador"></div>
 
         <div id="ruletaBox">
-           
-              <div id="ruleta-inner">🎡</div>
-           
+           <div id="ruleta">
+                <div id="ruleta-inner">🎡</div>
+           </div>
         </div>
 
         <h3>👑 Ganadores:</h3>
@@ -277,11 +277,11 @@ function girarRuleta(ganador,numPremio,premio,btn){
 
     let giros = 720 + Math.floor(Math.random()*360);
 
-    setTimeout(()=>{ ruleta.style.transform=`rotate(${giros}deg)`; },50);
+    setTimeout(()=>{ document.getElementById("ruleta-inner").style.transform = `rotate(${giros}deg)`; },50);
 
     setTimeout(()=>{
         sonido.pause();
-        ruleta.innerHTML=`🎫 ${ganador.numero}<br>👤 ${ganador.nombre}`;
+        document.getElementById("ruleta-inner").innerHTML = `🎫 ${ganador.numero}<br>👤 ${ganador.nombre}`;
         ganadores.add(ganador.numero);
         btn.disabled=true;
 
@@ -327,6 +327,7 @@ function resetRifa(){ location.reload(); }
 
 </body>
 </html>
+
 
 
 
