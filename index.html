@@ -13,58 +13,117 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.core.min.js"></script>
 
 <style>
-    body { font-family: Arial; background:#ffe9bf; margin:0; overflow-x:hidden; }
+    body { 
+        font-family: 'Montserrat', Arial, sans-serif; 
+        background:#ffe9bf;
+        margin:0;
+        overflow-x:hidden;
+        color:#333;
+    }
+
     #topbar {
-        background:#d62828; color:white; text-align:center;
-        padding:18px; font-size:26px; font-weight:bold;
-        position:fixed; top:0; width:100%; z-index:10;
+        background:#d62828; 
+        color:white; 
+        text-align:center;
+        padding:18px; 
+        font-size:26px; 
+        font-weight:bold;
+        position:fixed; 
+        top:0; 
+        width:100%; 
+        z-index:10;
         box-shadow:0 2px 6px rgba(0,0,0,0.3);
     }
-    .page { padding:100px 20px 20px; box-sizing:border-box; }
 
+    .page {
+        padding:100px 20px 20px;
+        display:flex;
+        justify-content:center;
+    }
+
+    /* Tarjeta centrada y más proporcionada */
     .card {
-        background:white; padding:25px; border-radius:15px;
-        box-shadow:0 4px 10px rgba(0,0,0,0.2); margin-bottom:25px;
+        width:100%;
+        max-width:650px;         /* Ajuste clave */
+        background:white;
+        padding:25px;
+        border-radius:15px;
+        box-shadow:0 4px 12px rgba(0,0,0,0.15);
     }
 
     .btn {
-        width:100%; padding:18px; font-size:22px; border:0;
-        border-radius:12px; font-weight:bold; cursor:pointer;
+        width:100%;
+        padding:18px;
+        font-size:22px;
+        border:0;
+        border-radius:12px;
+        font-weight:bold;
+        cursor:pointer;
         margin-top:12px;
     }
+
     .btn-primary { background:#0077ff; color:white; }
     .btn-danger { background:#d62828; color:white; }
 
+    /* Inputs responsables y centrados */
     input, textarea {
-        width:100%; padding:15px; font-size:18px;
-        border-radius:12px; border:2px solid #ccc;
+        width:100%;
+        max-width:100%;
+        padding:14px;
+        font-size:18px;
+        border-radius:10px;
+        border:2px solid #d0d0d0;
+        margin-top:8px;
+        box-sizing:border-box;   /* FIX PRINCIPAL */
     }
+
+    textarea { resize: vertical; }
 
     #ganadores div {
-        background:#fff3a3; padding:15px; font-size:22px;
-        border-radius:12px; margin-top:12px; border-left:6px solid #d62828;
+        background:#fff3a3;
+        padding:15px;
+        font-size:20px;
+        border-radius:10px;
+        margin-top:12px;
+        border-left:6px solid #d62828;
     }
 
-    #ruletaBox { display:none; text-align:center; margin-top:20px; width:100%; }
+    /* Centrado y tamaño correcto para la ruleta */
+    #ruletaBox { text-align:center; }
 
-    /* FIX: Caja NO gira */
     #ruleta {
-        width:90%; max-width:350px; background:white;
-        border-radius:15px; padding:25px; margin:auto;
+        width:100%;
+        max-width:350px;
+        margin:auto;
+        background:white;
+        padding:25px;
+        border-radius:15px;
         box-shadow:0 0 25px rgba(0,0,0,0.3);
         text-align:center;
     }
 
-    /* FIX: SOLO GIRA EL ICONO */
     #ruleta-inner {
-        font-size:48px; font-weight:bold;
+        font-size:48px;
+        font-weight:bold;
         transition: transform 3s ease-out;
-        display:block;
     }
 
     #contador {
-        display:none; font-size:80px; font-weight:bold;
-        text-align:center; margin-top:25px; color:#d62828;
+        display:none;
+        font-size:80px;
+        font-weight:bold;
+        text-align:center;
+        margin-top:25px;
+        color:#d62828;
+    }
+
+    /* Ajustes para pantallas chicas */
+    @media (max-width:480px) {
+        #ruleta-inner { font-size:40px; }
+        #contador { font-size:60px; }
+        .btn { font-size:20px; padding:16px; }
+        input, textarea { font-size:16px; }
+        .card { padding:20px; }
     }
 </style>
 </head>
@@ -265,3 +324,4 @@ function resetRifa(){ location.reload(); }
 
 </body>
 </html>
+
