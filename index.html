@@ -225,7 +225,7 @@ function generarBotonesPremios(){
     premios.forEach((premio,i)=>{
         let b=document.createElement("button");
         b.className="btn btn-primary";
-        b.textContent=`🎁 Sortear Premio ${i+1}: ${premio}`;
+        b.textContent=`🎁 Sortear : ${premio}`;
         b.onclick=()=>iniciarSorteo(i+1,premio,b);
         cont.appendChild(b);
     });
