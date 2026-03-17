@@ -301,7 +301,7 @@ function lanzarConfeti(){
 /* =================== GUARDADO DE GANADOR =================== */
 function mostrarGanador(numPremio,premio,ganador){
     let d=document.createElement("div");
-    d.innerHTML=`<b>Premio ${numPremio}: ${premio}</b><br>
+    d.innerHTML=`<b>Premio : ${premio}</b><br>
                  🎫 Boleto: <b>${ganador.numero}</b><br>
                  👤 ${ganador.nombre}`;
     document.getElementById("ganadores").appendChild(d);
